@@ -2,18 +2,28 @@
 
 import React from "react";
 import BaseNode from "./baseNode";
+import { useStore } from "../store";
 
-export const OutputNode = ({ data }) => {
+export const OutputNode = ({ id, data }) => {
+  const updateNodeField = useStore((state) => state.updateNodeField);
+
   return (
-    <BaseNode title="Output" inputs={[{ id: "input" }]}>
+    <BaseNode id={id} title="Output" inputs={[{ id: "input" }]}>
       <div>
         <label>Name:</label>
-        <input type="text" value={data?.name || ""} onChange={() => {}} />
+        <input
+          type="text"
+          value={data?.name || ""}
+          onChange={(e) => updateNodeField(id, "name", e.target.value)}
+        />
       </div>
 
       <div>
         <label>Type:</label>
-        <select defaultValue="Text">
+        <select
+          value={data?.outputType || "Text"}
+          onChange={(e) => updateNodeField(id, "outputType", e.target.value)}
+        >
           <option value="Text">Text</option>
           <option value="Image">Image</option>
         </select>

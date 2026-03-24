@@ -25,6 +25,46 @@ code {
 .node-header {
   font-weight: bold;
   margin-bottom: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.node-delete-btn {
+  background: transparent;
+  border: none;
+  color: #ff4d4d;
+  font-size: 18px;
+  cursor: pointer;
+  padding: 0 4px;
+  line-height: 1;
+  width: auto;
+  margin: 0;
+}
+
+.node-delete-btn:hover {
+  color: #ff0000;
+}
+
+.edge-delete-btn {
+  background: #ff4d4d;
+  border: none;
+  color: #fff;
+  font-size: 10px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  margin: 0;
+  line-height: 1;
+}
+
+.edge-delete-btn:hover {
+  background: #ff0000;
 }
 
 .node-body {

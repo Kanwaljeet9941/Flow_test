@@ -1,29 +1,39 @@
 // nodes/textNode.js
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useMemo, useEffect, useRef } from "react";
+import { useUpdateNodeInternals } from "reactflow";
 import BaseNode from "./baseNode";
+import { useStore } from "../store";
 
-// Extract variables like {{input}}
+// Extract variables like {{variableName}}
 const extractVariables = (text) => {
-  const regex = /{{(.*?)}}/g;
+  const regex = /\{\{(\s*\w+\s*)\}\}/g;
   const matches = [...text.matchAll(regex)];
   return matches.map((m) => m[1].trim());
 };
 
-export const TextNode = ({ data }) => {
+export const TextNode = ({ id, data }) => {
   const [text, setText] = useState(data?.text || "");
-  const [inputs, setInputs] = useState([]);
   const textareaRef = useRef(null);
+  const updateNodeField = useStore((state) => state.updateNodeField);
+  const updateNodeInternals = useUpdateNodeInternals();
 
-  // Dynamic variables → handles
-  useEffect(() => {
+  // Dynamic variables → handles (derived synchronously)
+  const inputs = useMemo(() => {
     const vars = extractVariables(text);
-    setInputs(vars.map((v) => ({ id: v })));
+    return vars.map((v) => ({ id: v }));
   }, [text]);
 
-  // Auto resize
+  // Notify React Flow when handles change
+  useEffect(() => {
+    updateNodeInternals(id);
+  }, [inputs, id, updateNodeInternals]);
+
+  // Auto resize + sync text to store
   const handleChange = (e) => {
-    setText(e.target.value);
+    const newText = e.target.value;
+    setText(newText);
+    updateNodeField(id, "text", newText);
 
     if (textareaRef.current) {
       textareaRef.current.style.height = "auto";
@@ -33,7 +43,7 @@ export const TextNode = ({ data }) => {
   };
 
   return (
-    <BaseNode title="Text" inputs={inputs} outputs={[{ id: "output" }]}>
+    <BaseNode id={id} title="Text" inputs={inputs} outputs={[{ id: "output" }]}>
       <textarea
         ref={textareaRef}
         value={text}
