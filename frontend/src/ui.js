@@ -5,12 +5,13 @@
 import { useState, useRef, useCallback } from "react";
 import ReactFlow, { Controls, Background, MiniMap } from "reactflow";
 import { useStore } from "./store";
-import { shallow } from "zustand/shallow";
+import { useShallow } from "zustand/react/shallow";
 
 import { InputNode } from "./nodes/inputNode";
 import { LLMNode } from "./nodes/llmNode";
 import { OutputNode } from "./nodes/outputNode";
 import { TextNode } from "./nodes/textNode";
+import { DeletableEdge } from "./edges/deletableEdge";
 
 import "reactflow/dist/style.css";
 
@@ -21,6 +22,10 @@ const nodeTypes = {
   llm: LLMNode,
   customOutput: OutputNode,
   text: TextNode,
+};
+
+const edgeTypes = {
+  deletable: DeletableEdge,
 };
 
 const selector = (state) => ({
@@ -45,14 +50,15 @@ export const PipelineUI = () => {
     onNodesChange,
     onEdgesChange,
     onConnect,
-  } = useStore(selector, shallow);
+  } = useStore(useShallow(selector));
 
   // Initial node data
   const getInitNodeData = (nodeID, type) => {
-    return {
-      id: nodeID,
-      nodeType: type,
-    };
+    const nodeData = { id: nodeID, nodeType: type };
+    if (type === 'text') {
+      nodeData.text = '';
+    }
+    return nodeData;
   };
 
   // Handle drop
@@ -111,6 +117,7 @@ export const PipelineUI = () => {
         onDragOver={onDragOver}
         onInit={setReactFlowInstance}
         nodeTypes={nodeTypes}
+        edgeTypes={edgeTypes}
         snapGrid={[gridSize, gridSize]}
         connectionLineType="smoothstep"
         fitView // ✅ better UX

@@ -3,9 +3,10 @@
 import React from "react";
 import BaseNode from "./baseNode";
 
-export const LLMNode = () => {
+export const LLMNode = ({ id }) => {
   return (
     <BaseNode
+      id={id}
       title="LLM"
       inputs={[{ id: "input" }]}
       outputs={[{ id: "output" }]}

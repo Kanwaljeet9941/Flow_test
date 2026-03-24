@@ -1,10 +1,22 @@
 import { Handle, Position } from "reactflow";
+import { useStore } from "../store";
 
-const BaseNode = ({ title, inputs = [], outputs = [], children }) => {
+const BaseNode = ({ id, title, inputs = [], outputs = [], children }) => {
+  const deleteNode = useStore((state) => state.deleteNode);
+
   return (
     <div className="node-container">
-      {/* Header */}
-      <div className="node-header">{title}</div>
+      {/* Header + Delete */}
+      <div className="node-header">
+        {title}
+        <button
+          className="node-delete-btn"
+          onClick={() => deleteNode(id)}
+          title="Delete node"
+        >
+          ×
+        </button>
+      </div>
 
       {/* Input Handles (Left) */}
       {inputs.map((input, index) => (

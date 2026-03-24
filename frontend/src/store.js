@@ -8,9 +8,46 @@ import {
     MarkerType,
   } from 'reactflow';
 
+// Extract {{variableName}} patterns from text
+const extractVariables = (text) => {
+  const regex = /\{\{(\s*\w+\s*)\}\}/g;
+  const matches = [...text.matchAll(regex)];
+  return matches.map((m) => m[1].trim());
+};
+
+// DFS-based cycle detection: returns true if adding source→target creates a cycle
+const hasCycle = (edges, source, target) => {
+  const adjacency = {};
+  for (const edge of edges) {
+    if (!adjacency[edge.source]) adjacency[edge.source] = [];
+    adjacency[edge.source].push(edge.target);
+  }
+  // Add the proposed edge
+  if (!adjacency[source]) adjacency[source] = [];
+  adjacency[source].push(target);
+
+  const visited = new Set();
+  const inStack = new Set();
+
+  const dfs = (node) => {
+    if (inStack.has(node)) return true;
+    if (visited.has(node)) return false;
+    visited.add(node);
+    inStack.add(node);
+    for (const neighbor of adjacency[node] || []) {
+      if (dfs(neighbor)) return true;
+    }
+    inStack.delete(node);
+    return false;
+  };
+
+  return dfs(source);
+};
+
 export const useStore = create((set, get) => ({
     nodes: [],
     edges: [],
+    nodeIDs: {},
     getNodeID: (type) => {
         const newIDs = {...get().nodeIDs};
         if (newIDs[type] === undefined) {
@@ -36,17 +73,79 @@ export const useStore = create((set, get) => ({
       });
     },
     onConnect: (connection) => {
+      const { source, target, targetHandle } = connection;
+      const { nodes, edges } = get();
+
+      // 1. Prevent self-loops
+      if (source === target) {
+        console.warn('Connection rejected: self-loop');
+        return;
+      }
+
+      const sourceNode = nodes.find((n) => n.id === source);
+      const targetNode = nodes.find((n) => n.id === target);
+      if (!sourceNode || !targetNode) return;
+
+      // 2. Node-type rules
+      if (sourceNode.type === 'customOutput') {
+        console.warn('Connection rejected: Output nodes cannot be a source');
+        return;
+      }
+      if (targetNode.type === 'customInput') {
+        console.warn('Connection rejected: Input nodes cannot be a target');
+        return;
+      }
+
+      // 3. Text node variable validation
+      if (targetNode.type === 'text') {
+        const text = targetNode.data?.text || '';
+        const variables = extractVariables(text);
+        if (variables.length === 0) {
+          console.warn('Connection rejected: Text node has no variables');
+          return;
+        }
+        if (!variables.includes(targetHandle)) {
+          console.warn(`Connection rejected: "${targetHandle}" is not a valid variable handle`);
+          return;
+        }
+      }
+
+      // 4. Cycle detection
+      if (hasCycle(edges, source, target)) {
+        console.warn('Connection rejected: would create a cycle');
+        return;
+      }
+
+      // 5. Add valid edge
       set({
-        edges: addEdge({...connection, type: 'smoothstep', animated: true, markerEnd: {type: MarkerType.Arrow, height: '20px', width: '20px'}}, get().edges),
+        edges: addEdge(
+          {
+            ...connection,
+            type: 'deletable',
+            animated: true,
+            markerEnd: { type: MarkerType.ArrowClosed },
+          },
+          edges,
+        ),
+      });
+    },
+    deleteNode: (nodeId) => {
+      set({
+        nodes: get().nodes.filter((n) => n.id !== nodeId),
+        edges: get().edges.filter((e) => e.source !== nodeId && e.target !== nodeId),
+      });
+    },
+    deleteEdge: (edgeId) => {
+      set({
+        edges: get().edges.filter((e) => e.id !== edgeId),
       });
     },
     updateNodeField: (nodeId, fieldName, fieldValue) => {
       set({
         nodes: get().nodes.map((node) => {
           if (node.id === nodeId) {
-            node.data = { ...node.data, [fieldName]: fieldValue };
+            return { ...node, data: { ...node.data, [fieldName]: fieldValue } };
           }
-  
           return node;
         }),
       });
