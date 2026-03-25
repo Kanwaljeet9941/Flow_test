@@ -44,10 +44,20 @@ export const InputNode = ({ id, data }) => {
           <input
             type="file"
             onChange={(e) => {
-              const file = e.target.files?.[0] || null;
-              updateNodeField(id, "file", file ? file.name : "");
+              const file = e.target.files?.[0];
+              if (!file) return;
+              updateNodeField(id, "fileName", file.name);
+              updateNodeField(id, "fileType", file.type);
+              const reader = new FileReader();
+              reader.onload = () => {
+                updateNodeField(id, "fileData", reader.result);
+              };
+              reader.readAsDataURL(file);
             }}
           />
+          {data?.fileName && (
+            <span style={{ fontSize: 12, color: "#aaa" }}>{data.fileName}</span>
+          )}
         </div>
       )}
     </BaseNode>

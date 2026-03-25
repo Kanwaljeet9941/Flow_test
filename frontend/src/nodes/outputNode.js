@@ -10,15 +10,6 @@ export const OutputNode = ({ id, data }) => {
   return (
     <BaseNode id={id} title="Output" inputs={[{ id: "input" }]}>
       <div>
-        <label>Name:</label>
-        <input
-          type="text"
-          value={data?.name || ""}
-          onChange={(e) => updateNodeField(id, "name", e.target.value)}
-        />
-      </div>
-
-      <div>
         <label>Type:</label>
         <select
           value={data?.outputType || "Text"}

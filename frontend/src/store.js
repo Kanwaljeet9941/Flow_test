@@ -68,12 +68,26 @@ export const useStore = create((set, get) => ({
       });
     },
     onEdgesChange: (changes) => {
+      // Filter out any "add" changes that bypass onConnect validation
+      const safeChanges = changes.filter((change) => {
+        if (change.type === 'add' && change.item) {
+          const { source, target, targetHandle } = change.item;
+          const { nodes } = get();
+          const targetNode = nodes.find((n) => n.id === target);
+          if (targetNode?.type === 'text') {
+            const text = targetNode.data?.text || '';
+            const variables = extractVariables(text);
+            if (!variables.includes(targetHandle)) return false;
+          }
+        }
+        return true;
+      });
       set({
-        edges: applyEdgeChanges(changes, get().edges),
+        edges: applyEdgeChanges(safeChanges, get().edges),
       });
     },
     onConnect: (connection) => {
-      const { source, target, targetHandle } = connection;
+      const { source, target, sourceHandle, targetHandle } = connection;
       const { nodes, edges } = get();
 
       // 1. Prevent self-loops
@@ -110,13 +124,35 @@ export const useStore = create((set, get) => ({
         }
       }
 
-      // 4. Cycle detection
+      // 4. Prevent duplicate edges (same source, target, and handles)
+      const isDuplicate = edges.some(
+        (e) =>
+          e.source === source &&
+          e.target === target &&
+          e.sourceHandle === sourceHandle &&
+          e.targetHandle === targetHandle
+      );
+      if (isDuplicate) {
+        console.warn('Connection rejected: duplicate edge');
+        return;
+      }
+
+      // 5. Prevent multiple connections to the same target handle
+      const handleOccupied = edges.some(
+        (e) => e.target === target && e.targetHandle === targetHandle
+      );
+      if (handleOccupied) {
+        console.warn(`Connection rejected: handle "${targetHandle}" is already connected`);
+        return;
+      }
+
+      // 6. Cycle detection
       if (hasCycle(edges, source, target)) {
         console.warn('Connection rejected: would create a cycle');
         return;
       }
 
-      // 5. Add valid edge
+      // 7. Add valid edge
       set({
         edges: addEdge(
           {
@@ -149,5 +185,18 @@ export const useStore = create((set, get) => ({
           return node;
         }),
       });
+
+      // Clean up stale edges when text node variables change
+      if (fieldName === 'text') {
+        const variables = extractVariables(fieldValue);
+        set({
+          edges: get().edges.filter((edge) => {
+            if (edge.target === nodeId && edge.targetHandle) {
+              return variables.includes(edge.targetHandle);
+            }
+            return true;
+          }),
+        });
+      }
     },
   }));

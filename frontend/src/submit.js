@@ -36,11 +36,22 @@ const buildContent = (node) => {
   const { data, type } = node;
   switch (type) {
     case "customInput":
+      if ((data.inputType || "Text") === "File") {
+        return [
+          {
+            fieldType: "File",
+            name: data.name || "",
+            fileName: data.fileName || "",
+            fileType: data.fileType || "",
+            fileData: data.fileData || "",
+          },
+        ];
+      }
       return [
         {
-          fieldType: data.inputType || "Text",
+          fieldType: "Text",
           name: data.name || "",
-          value: data.inputType === "File" ? (data.file || "") : (data.value || ""),
+          value: data.value || "",
         },
       ];
     case "customOutput":
