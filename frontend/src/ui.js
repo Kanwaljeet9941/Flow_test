@@ -55,8 +55,8 @@ export const PipelineUI = () => {
   // Initial node data
   const getInitNodeData = (nodeID, type) => {
     const nodeData = { id: nodeID, nodeType: type };
-    if (type === 'text') {
-      nodeData.text = '';
+    if (type === "text") {
+      nodeData.text = "";
     }
     return nodeData;
   };
@@ -105,7 +105,7 @@ export const PipelineUI = () => {
   return (
     <div
       ref={reactFlowWrapper}
-      style={{ width: "100vw", height: "70vh" }} // ✅ fixed typo
+      style={{ height: "100%" }} // ✅ fixed typo
     >
       <ReactFlow
         nodes={nodes}

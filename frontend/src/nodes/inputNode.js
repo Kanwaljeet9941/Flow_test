@@ -9,17 +9,18 @@ export const InputNode = ({ id, data }) => {
 
   return (
     <BaseNode id={id} title="Input" outputs={[{ id: "output" }]}>
-      <div>
-        <label>Name:</label>
+      <div className="field">
+        <label>Name</label>
         <input
           type="text"
+          placeholder="Enter input name..."
           value={data?.name || ""}
           onChange={(e) => updateNodeField(id, "name", e.target.value)}
         />
       </div>
 
-      <div>
-        <label>Type:</label>
+      <div className="field">
+        <label>Type</label>
         <select
           value={data?.inputType || "Text"}
           onChange={(e) => updateNodeField(id, "inputType", e.target.value)}
@@ -30,34 +31,40 @@ export const InputNode = ({ id, data }) => {
       </div>
 
       {(data?.inputType || "Text") === "Text" ? (
-        <div>
-          <label>Value:</label>
+        <div className="field">
+          <label>Value</label>
           <input
             type="text"
+            placeholder="Enter value..."
             value={data?.value || ""}
             onChange={(e) => updateNodeField(id, "value", e.target.value)}
           />
         </div>
       ) : (
-        <div>
-          <label>File:</label>
-          <input
-            type="file"
-            onChange={(e) => {
-              const file = e.target.files?.[0];
-              if (!file) return;
-              updateNodeField(id, "fileName", file.name);
-              updateNodeField(id, "fileType", file.type);
-              const reader = new FileReader();
-              reader.onload = () => {
-                updateNodeField(id, "fileData", reader.result);
-              };
-              reader.readAsDataURL(file);
-            }}
-          />
-          {data?.fileName && (
-            <span style={{ fontSize: 12, color: "#aaa" }}>{data.fileName}</span>
-          )}
+        <div className="field">
+          <label>Upload File</label>
+
+          <label className="file-upload">
+            <input
+              type="file"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (!file) return;
+
+                updateNodeField(id, "fileName", file.name);
+                updateNodeField(id, "fileType", file.type);
+
+                const reader = new FileReader();
+                reader.onload = () => {
+                  updateNodeField(id, "fileData", reader.result);
+                };
+                reader.readAsDataURL(file);
+              }}
+            />
+            <span>Choose File</span>
+          </label>
+
+          {data?.fileName && <div className="file-name">{data.fileName}</div>}
         </div>
       )}
     </BaseNode>

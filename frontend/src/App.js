@@ -6,10 +6,16 @@ import "react-toastify/dist/ReactToastify.css";
 
 function App() {
   return (
-    <div>
-      <PipelineToolbar />
-      <PipelineUI />
-      <SubmitButton />
+    <div className="app-parent">
+      <div className="div1">
+        <SubmitButton />
+      </div>
+      <div className="div2">
+        <PipelineToolbar />
+      </div>
+      <div className="div3">
+        <PipelineUI />
+      </div>
       <ToastContainer position="bottom-right" autoClose={3000} />
     </div>
   );

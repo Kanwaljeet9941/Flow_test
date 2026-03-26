@@ -1,5 +1,6 @@
 import { Handle, Position } from "reactflow";
 import { useStore } from "../store";
+import { MdDelete } from "react-icons/md";
 
 const BaseNode = ({ id, title, inputs = [], outputs = [], children }) => {
   const deleteNode = useStore((state) => state.deleteNode);
@@ -14,7 +15,7 @@ const BaseNode = ({ id, title, inputs = [], outputs = [], children }) => {
           onClick={() => deleteNode(id)}
           title="Delete node"
         >
-          ×
+          <MdDelete />
         </button>
       </div>
 
@@ -25,7 +26,13 @@ const BaseNode = ({ id, title, inputs = [], outputs = [], children }) => {
           type="target"
           position={Position.Left}
           id={input.id}
-          style={{ top: 40 + index * 25 }}
+          style={{
+            top: 50 + index * 28,
+            width: 10,
+            height: 10,
+            background: "#1c2536",
+            border: "2px solid white",
+          }}
         />
       ))}
 
@@ -39,7 +46,13 @@ const BaseNode = ({ id, title, inputs = [], outputs = [], children }) => {
           type="source"
           position={Position.Right}
           id={output.id}
-          style={{ top: 40 + index * 25 }}
+          style={{
+            top: 50 + index * 28,
+            width: 10,
+            height: 10,
+            background: "#1c2536",
+            border: "2px solid white",
+          }}
         />
       ))}
     </div>
