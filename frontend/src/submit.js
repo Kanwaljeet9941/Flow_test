@@ -2,6 +2,7 @@
 
 import { useStore } from "./store";
 import { useShallow } from "zustand/react/shallow";
+import { toast } from "react-toastify";
 
 const selector = (state) => ({
   nodes: state.nodes,
@@ -84,6 +85,11 @@ export const SubmitButton = () => {
   const { nodes, edges } = useStore(useShallow(selector));
 
   const handleSubmit = async () => {
+    if (nodes.length === 0) {
+      toast.warn("Flow is empty. Add some nodes before submitting.");
+      return;
+    }
+
     const payload = {
       flow: buildFlow(nodes, edges),
       flowMessage: buildFlowMessages(nodes, edges),
@@ -99,10 +105,10 @@ export const SubmitButton = () => {
       });
       const result = await response.json();
       console.log("Response:", result);
-      alert(`Pipeline submitted! Nodes: ${payload.flow.nodes.length}, Edges: ${payload.flow.edges.length}`);
+      toast.success("Flow submitted successfully!");
     } catch (error) {
       console.error("Submit failed:", error);
-      alert("Failed to submit pipeline. Is the backend running?");
+      toast.error("Failed to submit pipeline. Is the backend running?");
     }
   };
 
